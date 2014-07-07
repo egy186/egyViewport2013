@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Text.Editor;
+using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
-using Microsoft.VisualStudio.Text.Editor;
 
 namespace egyViewport2013
 {
@@ -25,6 +25,7 @@ namespace egyViewport2013
     class egyViewport2013
     {
         private Image _image;
+        private double _imageAspect;
         private IWpfTextView _view;
         private IAdornmentLayer _adornmentLayer;
 
@@ -57,11 +58,13 @@ namespace egyViewport2013
             bitmapImage.EndInit();
 
             _image = new Image();
-            _image.Width = bitmapImage.PixelWidth;
-            _image.Height = bitmapImage.PixelHeight;
+            _image.MaxWidth = bitmapImage.PixelWidth;
+            _image.MaxHeight = bitmapImage.PixelHeight;
             _image.Opacity = vConfig.imageOpacity;
             _image.Source = bitmapImage;
             _image.Stretch = Stretch.Uniform;
+
+            _imageAspect = bitmapImage.Height / bitmapImage.Width;
 
             //Grab a reference to the adornment layer that this adornment should be added to
             _adornmentLayer = view.GetAdornmentLayer("egyViewport2013");
@@ -74,6 +77,11 @@ namespace egyViewport2013
         {
             //clear the adornment layer of previous adornments
             _adornmentLayer.RemoveAllAdornments();
+
+            //stretch image size
+            double height = _view.ViewportHeight;
+            _image.Width = height / _imageAspect;
+            _image.Height = height;
 
             //Place the image in the right hand of the Viewport
             Canvas.SetLeft(_image, _view.ViewportRight - (double)_image.Width);
